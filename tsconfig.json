@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"esModuleInterop": true,
+		"removeComments": false
+	},
+	"include": ["src", "tests", "axios-http.client.test.ts"],
+	"exclude": ["dist"]
+}
