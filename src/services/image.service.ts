@@ -1,8 +1,9 @@
-import { ImageService, ImageGenerationParams } from "../interfaces/image-service.interface.js"
+import { ImageService, ImageGenerationParams, ImageFeedEvent } from "../interfaces/image-service.interface.js"
 import { HttpClient } from "../interfaces/http-client.interface.js"
 import { ImageRequestBuilder } from "../builders/image-request.builder.js"
 import { AxiosHttpClient } from "../clients/axios-http.client.js"
 import { AxiosError } from "axios"
+import { Readable } from "node:stream"
 
 export class PollinationsImageService implements ImageService {
 	private readonly baseUrl: string = "https://image.pollinations.ai"
@@ -61,6 +62,82 @@ export class PollinationsImageService implements ImageService {
 			return await this.httpClient.get<string[]>("/models")
 		} catch (error) {
 			throw this.handleError(error)
+		}
+	}
+
+	/**
+	 * Subscribe to the real-time image generation feed
+	 * @param onData - The callback to call when a new event is received
+	 * @param onError - The callback to call when an error occurs
+	 * @returns A cleanup function to stop the feed
+	 */
+	subscribeToFeed(onData: (event: ImageFeedEvent) => void, onError?: (error: Error) => void): () => void {
+		const controller = new AbortController()
+		let isStreamActive = true
+		let buffer = ""
+
+		this.httpClient
+			.get<Readable>("/feed", {
+				responseType: "stream",
+				headers: {
+					Accept: "text/event-stream",
+					"Cache-Control": "no-cache",
+					Connection: "keep-alive",
+				},
+				signal: controller.signal,
+			})
+			.then((response) => {
+				if (!(response instanceof Readable)) {
+					throw new Error("Invalid SSE response: expected a readable stream")
+				}
+
+				response.on("data", (chunk: Buffer) => {
+					if (!isStreamActive) return
+
+					buffer += chunk.toString()
+					const events = buffer.split(/\n\n|\r\n\r\n/)
+					buffer = events.pop() || ""
+
+					for (const event of events) {
+						if (!event.startsWith("data:")) continue
+
+						try {
+							const jsonString =
+								event
+									.split("\n")
+									.find((line) => line.startsWith("data:"))
+									?.replace(/^data:\s*/, "") || "{}"
+
+							onData(<ImageFeedEvent>JSON.parse(jsonString))
+						} catch (err) {
+							onError?.(new Error(`Failed to parse feed event: ${err.message}`))
+						}
+					}
+				})
+
+				response.on("error", (err: Error) => {
+					if (!isStreamActive) return
+					isStreamActive = false
+					onError?.(new Error(`Feed error: ${err.message}`))
+					controller.abort()
+				})
+
+				response.on("end", () => {
+					if (!isStreamActive) return
+					isStreamActive = false
+					controller.abort()
+				})
+			})
+			.catch((error) => {
+				isStreamActive = false
+				onError?.(error instanceof Error ? error : new Error("Unknown feed error"))
+			})
+
+		return () => {
+			if (isStreamActive) {
+				isStreamActive = false
+				controller.abort()
+			}
 		}
 	}
 
