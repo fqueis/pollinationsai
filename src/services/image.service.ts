@@ -2,7 +2,6 @@ import { ImageService, ImageGenerationParams, ImageFeedEvent } from "../interfac
 import { HttpClient } from "../interfaces/http-client.interface.js"
 import { ImageRequestBuilder } from "../builders/image-request.builder.js"
 import { AxiosHttpClient } from "../clients/axios-http.client.js"
-import { AxiosError } from "axios"
 import { Readable } from "node:stream"
 import { RequestErrorHandler } from "../handlers/request-error.handler.js"
 
