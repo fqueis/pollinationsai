@@ -7,6 +7,7 @@ import { ImageFeedEvent } from "../src/interfaces/image-service.interface.js"
 
 const mockHttpClient: HttpClient = {
 	get: jest.fn(),
+	post: jest.fn(),
 }
 const mockedFeedEvent: ImageFeedEvent = {
 	width: 1024,
@@ -67,7 +68,7 @@ describe("PollinationsImageService", () => {
 		const error = new Error("Network error")
 		;(httpClient.get as jest.Mock).mockRejectedValue(error)
 
-		await expect(service.generate("Test prompt")).rejects.toThrow("Image generation failed: Network error")
+		await expect(service.generate("Test prompt")).rejects.toThrow("Request failed: Network error")
 	})
 
 	test("should handle Axios errors", async () => {
@@ -81,7 +82,7 @@ describe("PollinationsImageService", () => {
 
 		;(httpClient.get as jest.Mock).mockRejectedValue(axiosError)
 
-		await expect(service.generate("Test prompt")).rejects.toThrow("Image generation failed: Invalid parameters")
+		await expect(service.generate("Test prompt")).rejects.toThrow("Request failed: Invalid parameters")
 	})
 
 	test("should use default http client when not provided", () => {
