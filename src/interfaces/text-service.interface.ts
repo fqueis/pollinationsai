@@ -3,6 +3,7 @@ export interface TextService {
 	postGenerate(params: TextGenerationPostParams): Promise<string>
 	vision(params?: TextGenerationVisionParams): Promise<string>
 	listModels(): Promise<Model[]>
+	subscribeToFeed(onData: (event: TextFeedEvent) => void, onError?: (error: Error) => void): () => void
 }
 
 export interface BaseGenerationParams {
@@ -52,4 +53,36 @@ export interface Model {
 	provider?: string
 	audio?: boolean
 	voices?: string[]
+}
+
+export interface TextFeedEvent {
+	response: string
+	parameters: TextFeedParams
+}
+
+export interface TextFeedParams {
+	messages: TextMessage[] | VisionMessage[]
+	jsonMode: boolean
+	seed: number
+	model: string
+	temperature?: number
+	isImagePollinationsReferrer: boolean
+	isRobloxReferrer: boolean
+	referrer: string
+	stream: boolean
+	isPrivate: boolean
+	voice: string
+	prompt_tokens: number
+	prompt_tokens_details: TokensDetail
+	completion_tokens: number
+	completion_tokens_details: TokensDetail
+	total_tokens: number
+}
+
+export interface TokensDetail {
+	accepted_prediction_tokens?: number
+	audio_tokens?: number
+	cached_tokens?: number
+	reasoning_tokens?: number
+	rejected_prediction_tokens?: number
 }
