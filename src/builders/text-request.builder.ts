@@ -7,8 +7,6 @@ import {
 	BaseGenerationParams,
 } from "../interfaces/text-service.interface.js"
 
-export type TextRequestType = TextGenerationGetParams | TextGenerationPostParams | TextGenerationVisionParams
-
 /**
  * Base class for text generation request builders
  * @template T - The type of the request parameters
