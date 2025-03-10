@@ -31,4 +31,20 @@ export class AxiosHttpClient implements HttpClient {
 		})
 		return response.data
 	}
+
+	/**
+	 * Send a POST request to the server
+	 * @param url - The URL to send the request to
+	 * @param data - The data to send in the request body
+	 * @param config - The request configuration
+	 * @returns The response data
+	 */
+	async post<T>(url: string, data?: any, config?: RequestConfig): Promise<T> {
+		const response = await this.client.post<T>(url, data, {
+			params: config?.params,
+			responseType: config?.responseType || "json",
+		})
+
+		return response.data
+	}
 }
