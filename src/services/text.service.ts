@@ -17,7 +17,14 @@ import {
 import { Readable } from "node:stream"
 
 export class PollinationsTextService implements TextService {
+	/**
+	 * The base URL for the Pollinations Text service
+	 */
 	private readonly baseUrl: string = "https://text.pollinations.ai"
+
+	/**
+	 * The HTTP client to use for the service
+	 */
 	private readonly httpClient: HttpClient
 
 	/**
