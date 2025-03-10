@@ -15,8 +15,9 @@ import {
 	TextService,
 } from "../interfaces/text-service.interface.js"
 import { Readable } from "node:stream"
+import { RequestErrorHandler } from "../handlers/request-error.handler.js"
 
-export class PollinationsTextService implements TextService {
+export class PollinationsTextService extends RequestErrorHandler implements TextService {
 	/**
 	 * The base URL for the Pollinations Text service
 	 */
@@ -32,6 +33,7 @@ export class PollinationsTextService implements TextService {
 	 * @param httpClient - The HTTP client to use for the service, should be a HttpClient implementation (optional)
 	 */
 	constructor(httpClient?: HttpClient) {
+		super()
 		this.httpClient = httpClient ?? new AxiosHttpClient(this.baseUrl)
 	}
 
@@ -52,13 +54,11 @@ export class PollinationsTextService implements TextService {
 				.setPrivateMode(params?.private)
 				.build()
 
-			console.log(url)
-
 			const response = await this.httpClient.get<string>(url)
 
 			return response
 		} catch (error) {
-			throw this.handleError(error)
+			throw super.handleError(error)
 		}
 	}
 
@@ -81,7 +81,7 @@ export class PollinationsTextService implements TextService {
 
 			return this.httpClient.post<string>(this.baseUrl, body)
 		} catch (error) {
-			throw this.handleError(error)
+			throw super.handleError(error)
 		}
 	}
 
@@ -104,7 +104,7 @@ export class PollinationsTextService implements TextService {
 
 			return this.httpClient.post<string>(this.baseUrl, body)
 		} catch (error) {
-			throw this.handleError(error)
+			throw super.handleError(error)
 		}
 	}
 
@@ -190,41 +190,5 @@ export class PollinationsTextService implements TextService {
 				controller.abort()
 			}
 		}
-	}
-
-	/**
-	 * Handle an error that occurred during text generation
-	 * @param error - The error to handle
-	 * @returns An Error object with the error message
-	 */
-	private handleError(error: unknown): Error {
-		const defaultMessage = "Text generation failed: Unknown error occurred"
-
-		if (this.isAxiosError(error)) {
-			return new Error(
-				`Text generation failed: ${
-					(error.response?.data as { message?: string })?.message || error.message || defaultMessage
-				}`
-			)
-		}
-
-		if (error instanceof Error) {
-			return new Error(`Text generation failed: ${error.message}`)
-		}
-
-		if (typeof error === "string") {
-			return new Error(`Text generation failed: ${error}`)
-		}
-
-		return new Error(defaultMessage)
-	}
-
-	/**
-	 * Check if the error is an Axios error
-	 * @param error - The error to check
-	 * @returns True if the error is an Axios error, false otherwise
-	 */
-	private isAxiosError(error: unknown): error is AxiosError {
-		return (error as AxiosError).isAxiosError === true
 	}
 }

@@ -4,8 +4,9 @@ import { ImageRequestBuilder } from "../builders/image-request.builder.js"
 import { AxiosHttpClient } from "../clients/axios-http.client.js"
 import { AxiosError } from "axios"
 import { Readable } from "node:stream"
+import { RequestErrorHandler } from "../handlers/request-error.handler.js"
 
-export class PollinationsImageService implements ImageService {
+export class PollinationsImageService extends RequestErrorHandler implements ImageService {
 	/**
 	 * The base URL for the Pollinations Image service
 	 */
@@ -26,6 +27,7 @@ export class PollinationsImageService implements ImageService {
 	 * @param httpClient - The HTTP client to use for the service, should be a HttpClient implementation (optional)
 	 */
 	constructor(httpClient?: HttpClient) {
+		super()
 		this.httpClient = httpClient ?? new AxiosHttpClient(this.baseUrl)
 	}
 
@@ -150,41 +152,5 @@ export class PollinationsImageService implements ImageService {
 				controller.abort()
 			}
 		}
-	}
-
-	/**
-	 * Handle an error that occurred during image generation
-	 * @param error - The error to handle
-	 * @returns An Error object with the error message
-	 */
-	private handleError(error: unknown): Error {
-		const defaultMessage = "Image generation failed: Unknown error occurred"
-
-		if (this.isAxiosError(error)) {
-			return new Error(
-				`Image generation failed: ${
-					(error.response?.data as { message?: string })?.message || error.message || defaultMessage
-				}`
-			)
-		}
-
-		if (error instanceof Error) {
-			return new Error(`Image generation failed: ${error.message}`)
-		}
-
-		if (typeof error === "string") {
-			return new Error(`Image generation failed: ${error}`)
-		}
-
-		return new Error(defaultMessage)
-	}
-
-	/**
-	 * Check if the error is an Axios error
-	 * @param error - The error to check
-	 * @returns True if the error is an Axios error, false otherwise
-	 */
-	private isAxiosError(error: unknown): error is AxiosError {
-		return (error as AxiosError).isAxiosError === true
 	}
 }
