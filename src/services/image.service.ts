@@ -6,8 +6,19 @@ import { AxiosError } from "axios"
 import { Readable } from "node:stream"
 
 export class PollinationsImageService implements ImageService {
+	/**
+	 * The base URL for the Pollinations Image service
+	 */
 	private readonly baseUrl: string = "https://image.pollinations.ai"
+
+	/**
+	 * The HTTP client to use for the service
+	 */
 	private readonly httpClient: HttpClient
+
+	/**
+	 * The builder for the image request
+	 */
 	private builder: ImageRequestBuilder = new ImageRequestBuilder()
 
 	/**
