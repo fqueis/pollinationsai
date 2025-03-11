@@ -170,7 +170,7 @@ export class TextGenerationVisionRequestBuilder extends BaseTextRequestBuilder<T
 	 * @returns The builder instance
 	 */
 	setModel(model: TextGenerationPostParams["model"]): this {
-		if (!this.validVisionModels.has(model)) {
+		if (model && !this.validVisionModels.has(model)) {
 			throw new Error(
 				`Invalid vision model: ${model}. Valid models are: ${Array.from(this.validVisionModels).join(", ")}`
 			)
