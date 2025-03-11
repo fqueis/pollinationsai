@@ -11,7 +11,7 @@ import { PollinationsSpeechService } from "./services/speech.service.js"
 import type { HttpClient } from "./interfaces/http-client.interface.js"
 import type { ImageService } from "./interfaces/image-service.interface.js"
 import type { TextService } from "./interfaces/text-service.interface.js"
-import type { SpeechService } from "./interfaces/voice-service.interface.js"
+import type { SpeechService } from "./interfaces/speech-service.interface.js"
 
 export const createImageService = (httpClient?: HttpClient): ImageService => {
 	return new PollinationsImageService(httpClient)
@@ -39,5 +39,5 @@ export default {
 // Type exports
 export type * from "./interfaces/image-service.interface.js"
 export type * from "./interfaces/text-service.interface.js"
-export type * from "./interfaces/voice-service.interface.js"
+export type * from "./interfaces/speech-service.interface.js"
 export type { HttpClient } from "./interfaces/http-client.interface.js"

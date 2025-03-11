@@ -4,7 +4,7 @@ import {
 	OpenAITextToSpeechParams,
 	OpenAISpeechToTextParams,
 	SpeechToTextMessage,
-} from "../interfaces/voice-service.interface.js"
+} from "../interfaces/speech-service.interface.js"
 
 abstract class BaseSpeechRequestBuilder<T extends TextToSpeechParams> {
 	/**

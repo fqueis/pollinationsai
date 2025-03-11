@@ -2,8 +2,8 @@ import {
 	PollinationsTextToSpeechBuilder,
 	OpenAITextToSpeechRequestBuilder,
 	OpenAISpeechToTextRequestBuilder,
-} from "../src/builders/voice-request.builder.js"
-import { TextToSpeechMessage, SpeechToTextMessage } from "../src/interfaces/voice-service.interface.js"
+} from "../src/builders/speech-request.builder.js"
+import { TextToSpeechMessage, SpeechToTextMessage } from "../src/interfaces/speech-service.interface.js"
 
 describe("PollinationsTextToSpeechBuilder", () => {
 	let builder: PollinationsTextToSpeechBuilder

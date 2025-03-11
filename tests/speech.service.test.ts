@@ -1,7 +1,7 @@
 import { PollinationsSpeechService } from "../src/services/speech.service.js"
 import { HttpClient } from "../src/interfaces/http-client.interface.js"
 import { Readable, PassThrough } from "node:stream"
-import { TextToSpeechMessage, SpeechToTextMessage } from "../src/interfaces/voice-service.interface.js"
+import { TextToSpeechMessage, SpeechToTextMessage } from "../src/interfaces/speech-service.interface.js"
 
 describe("PollinationsSpeechService", () => {
 	let service: PollinationsSpeechService

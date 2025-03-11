@@ -1,7 +1,7 @@
 import { TokensDetail } from "./text-service.interface.js"
 
 export interface SpeechService {
-	openAITextToSpeech(params: OpenAITextToSpeechParams): Promise<OpenAISpeechResponse>
+	openAITextToSpeech(params: TextToSpeechParams): Promise<OpenAISpeechResponse>
 	pollinationsTextToSpeech(params: PollinationsTextToSpeechParams): Promise<Buffer>
 	openAISpeechToText(params: { messages: SpeechToTextMessage[] }): Promise<OpenAISpeechResponse>
 }

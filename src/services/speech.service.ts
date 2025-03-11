@@ -2,7 +2,7 @@ import {
 	OpenAISpeechToTextRequestBuilder,
 	OpenAITextToSpeechRequestBuilder,
 	PollinationsTextToSpeechBuilder,
-} from "../builders/voice-request.builder.js"
+} from "../builders/speech-request.builder.js"
 import { AxiosHttpClient } from "../clients/axios-http.client.js"
 import { HttpClient } from "../interfaces/http-client.interface.js"
 import {
@@ -11,7 +11,7 @@ import {
 	OpenAISpeechResponse,
 	TextToSpeechMessage,
 	SpeechToTextMessage,
-} from "../interfaces/voice-service.interface.js"
+} from "../interfaces/speech-service.interface.js"
 import { RequestErrorHandler } from "../handlers/request-error.handler.js"
 
 export class PollinationsSpeechService extends RequestErrorHandler implements SpeechService {
@@ -40,7 +40,7 @@ export class PollinationsSpeechService extends RequestErrorHandler implements Sp
 	 * @returns The response from the text to speech request
 	 */
 	async openAITextToSpeech(
-		params: TextToSpeechParams & { messages: TextToSpeechMessage[] }
+		params: TextToSpeechParams & { messages: TextToSpeechMessage[]; format?: string }
 	): Promise<OpenAISpeechResponse> {
 		try {
 			const builder = new OpenAITextToSpeechRequestBuilder(this.baseUrl)
