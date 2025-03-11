@@ -1,6 +1,8 @@
 export * from "./interfaces/image-service.interface.js"
 export * from "./services/image.service.js"
 export * from "./builders/image-request.builder.js"
+export * from "./builders/text-request.builder.js"
+export * from "./builders/speech-request.builder.js"
 export * from "./clients/axios-http.client.js"
 
 // Main factory function for default usage
