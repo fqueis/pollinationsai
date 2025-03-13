@@ -1,5 +1,7 @@
 # 🐝 Pollinations AI Client Library
 
+![npm](https://img.shields.io/npm/v/pollinationsai) ![License](https://img.shields.io/npm/l/pollinationsai) ![TypeScript](https://img.shields.io/badge/TypeScript-✓-blue)
+
 A TypeScript/JavaScript client for interacting with Pollinations AI services, providing easy access to image generation, text processing, and speech synthesis capabilities.
 
 ## Features
