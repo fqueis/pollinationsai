@@ -6,8 +6,10 @@ import { TextMessage, VisionMessage } from "../src/interfaces/text-service.inter
 describe("PollinationsTextService", () => {
 	let service: PollinationsTextService
 	let mockHttpClient: jest.Mocked<HttpClient>
+	let mockReadable: Readable
 
 	beforeEach(() => {
+		mockReadable = new Readable({ read() {} })
 		mockHttpClient = {
 			get: jest.fn(),
 			post: jest.fn(),
@@ -102,6 +104,60 @@ describe("PollinationsTextService", () => {
 				})
 			).rejects.toThrow()
 		})
+
+		test("should handle stream option", async () => {
+			mockHttpClient.post.mockResolvedValue(mockReadable)
+
+			const result = await service.postGenerate(
+				{
+					messages: [{ role: "user", content: "Hello" }],
+				},
+				{ stream: true }
+			)
+
+			expect(result).toBeInstanceOf(Readable)
+		})
+
+		test("should handle stream errors", async () => {
+			mockHttpClient.post.mockResolvedValue(mockReadable)
+
+			const result = (await service.postGenerate(
+				{ messages: [{ role: "user", content: "Hello" }] },
+				{ stream: true }
+			)) as Readable
+
+			const errorHandler = jest.fn()
+			result.on("error", errorHandler)
+
+			// Test error propagation
+			const testError = new Error("Stream error")
+			mockReadable.emit("error", testError)
+
+			await new Promise((resolve) => setTimeout(resolve, 50))
+			expect(errorHandler).toHaveBeenCalledWith(testError)
+		})
+
+		test("should complete stream properly", async () => {
+			mockHttpClient.post.mockResolvedValue(mockReadable)
+
+			const result = (await service.postGenerate(
+				{ messages: [{ role: "user", content: "Hello" }] },
+				{ stream: true }
+			)) as Readable
+
+			const endHandler = jest.fn()
+			result.on("end", endHandler)
+
+			// Trigger stream end
+			mockReadable.push(null)
+
+			// Wait for the end event to propagate
+			await new Promise<void>((resolve) => {
+				result.on("end", resolve)
+			})
+
+			expect(endHandler).toHaveBeenCalled()
+		})
 	})
 
 	describe("vision", () => {
@@ -171,8 +227,6 @@ describe("PollinationsTextService", () => {
 	})
 
 	describe("subscribeToFeed", () => {
-		let mockReadable: Readable
-
 		beforeEach(() => {
 			mockReadable = new Readable({ read() {} })
 			mockHttpClient.get.mockResolvedValue(mockReadable)

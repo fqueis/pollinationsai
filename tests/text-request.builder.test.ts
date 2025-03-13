@@ -92,6 +92,12 @@ describe("TextGenerationPostRequestBuilder", () => {
 	test("should throw error when no messages are added", () => {
 		expect(() => builder.build()).toThrow("At least one message is required")
 	})
+
+	test("should handle stream option", () => {
+		const request = builder.addMessage({ role: "user", content: "Hello" }).setStream(true).build()
+
+		expect(request.stream).toBe(true)
+	})
 })
 
 describe("TextGenerationVisionRequestBuilder", () => {
