@@ -233,6 +233,8 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 			throw new Error("Invalid SSE response: expected a readable stream")
 		}
 
+		outputStream.resume()
+
 		response.on("data", (chunk: Buffer) => {
 			if (!isStreamActive) return
 
