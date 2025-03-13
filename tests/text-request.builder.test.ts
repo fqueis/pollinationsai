@@ -30,7 +30,7 @@ describe("TextGenerationGetRequestBuilder", () => {
 		expect(url).toContain(`${baseUrl}/prompt/Test%20prompt?`)
 		expect(url).toContain("model=gpt-4")
 		expect(url).toContain("system=System%2520prompt")
-		expect(url).toContain("jsonMode=true")
+		expect(url).toContain("json=true")
 		expect(url).toContain("seed=42")
 		expect(url).toContain("private=true")
 	})
