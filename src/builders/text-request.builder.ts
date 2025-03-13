@@ -115,11 +115,7 @@ export class TextGenerationGetRequestBuilder extends BaseTextRequestBuilder<Text
 		const searchParams = new URLSearchParams(
 			Object.entries(queryParams)
 				.filter(([_, v]) => v !== undefined)
-				.map(([k, v]) => {
-					if (k === "jsonMode") return ["json", v.toString()]
-
-					return [k, v.toString()]
-				})
+				.map(([k, v]) => [k, v.toString()])
 		)
 
 		return `${this.baseUrl}/prompt/${prompt}?${searchParams}`
