@@ -18,6 +18,11 @@
 			}
 		}
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fqueis/pollinationsai"
+	},
+	"homepage": "https://github.com/fqueis/pollinationsai",
 	"scripts": {
 		"build": "pnpm build:cjs && pnpm build:esm",
 		"build:cjs": "tsc --project tsconfig.cjs.json && echo {\"type\":\"commonjs\"} > dist/cjs/package.json",
