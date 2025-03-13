@@ -1,6 +1,24 @@
+import { Readable } from "node:stream"
+
+declare module "stream" {
+	interface Readable {
+		on(event: "data", listener: (chunk: any) => void): this
+		on(event: string | symbol, listener: (...args: any[]) => void): this
+	}
+}
+
+export interface TypedReadable<T> extends Readable {
+	on(event: "data", listener: (chunk: T) => void): this
+	on(event: string | symbol, listener: (...args: any[]) => void): this
+}
+
 export interface TextService {
 	getGenerate(prompt: string, params?: TextGenerationGetParams): Promise<string>
 	postGenerate(params: TextGenerationPostParams): Promise<string>
+	postGenerate(
+		params: TextGenerationPostParams,
+		options: { stream: true; onStreamData?: (event: StreamEvent) => void }
+	): Promise<TypedReadable<StreamEvent>>
 	vision(params?: TextGenerationVisionParams): Promise<string>
 	listModels(): Promise<Model[]>
 	subscribeToFeed(onData: (event: TextFeedEvent) => void, onError?: (error: Error) => void): () => void
@@ -20,6 +38,7 @@ export interface TextGenerationGetParams extends BaseGenerationParams {
 
 export interface TextGenerationPostParams extends BaseGenerationParams {
 	messages: TextMessage[]
+	stream?: boolean
 }
 
 export interface TextMessage {
@@ -85,4 +104,32 @@ export interface TokensDetail {
 	cached_tokens?: number
 	reasoning_tokens?: number
 	rejected_prediction_tokens?: number
+}
+
+export interface StreamEvent {
+	choices: StreamChoice[]
+	created: number
+	id: string
+	model: string
+	object: string
+	system_fingerprint: string
+	prompt_filter_results: ContentFilterResults[]
+}
+
+export interface ContentFilterResults {
+	prompt_index: number
+	content_filter_results: FilterResults
+}
+
+export interface FilterResults {
+	hate: { filtered: boolean; severity?: string; detected?: boolean }
+	self_harm: { filtered: boolean; severity?: string; detected?: boolean }
+	sexual: { filtered: boolean; severity?: string; detected?: boolean }
+	violence: { filtered: boolean; severity?: string; detected?: boolean }
+}
+export interface StreamChoice {
+	content_filter_results: FilterResults
+	delta: { content: string }
+	finish_reason: string
+	index: number
 }

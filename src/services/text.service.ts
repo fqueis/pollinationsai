@@ -7,11 +7,13 @@ import { AxiosHttpClient } from "../clients/axios-http.client.js"
 import { HttpClient } from "../interfaces/http-client.interface.js"
 import {
 	Model,
+	StreamEvent,
 	TextFeedEvent,
 	TextGenerationGetParams,
 	TextGenerationPostParams,
 	TextGenerationVisionParams,
 	TextService,
+	TypedReadable,
 } from "../interfaces/text-service.interface.js"
 import { Readable } from "node:stream"
 import { RequestErrorHandler } from "../handlers/request-error.handler.js"
@@ -64,19 +66,43 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 	/**
 	 * Generate a text response using POST request method and returns a string or a JSON object
 	 * @param params - The parameters for the text generation
-	 * @returns The generated text or a JSON object
+	 * @param options - The options for the text generation
+	 * @returns {Promise<string>} The generated text or a JSON object
+	 * @returns {Promise<TypedReadable<StreamEvent>>} When streaming is enabled
 	 */
-	async postGenerate(params: TextGenerationPostParams): Promise<string> {
+	async postGenerate(
+		params: TextGenerationPostParams,
+		options: { stream: true; onStreamData?: (event: StreamEvent) => void }
+	): Promise<TypedReadable<StreamEvent>>
+	async postGenerate(params: TextGenerationPostParams): Promise<string>
+	async postGenerate(
+		params: TextGenerationPostParams,
+		options?: { stream?: boolean; onStreamData?: (event: StreamEvent) => void }
+	): Promise<string | TypedReadable<StreamEvent>> {
 		try {
 			const builder = new TextGenerationPostRequestBuilder()
 				.setModel(params?.model)
 				.setJsonMode(params?.jsonMode)
 				.setPrivateMode(params?.private)
 				.setSeed(params?.seed)
+				.setStream(options?.stream ?? false)
 
 			params?.messages?.forEach((msg) => builder.addMessage(msg))
 
 			const body = builder.build()
+
+			if (options?.stream) {
+				const response = await this.httpClient.post<TypedReadable<StreamEvent>>(this.baseUrl, body, {
+					responseType: "stream",
+					headers: {
+						Accept: "text/event-stream",
+						"Cache-Control": "no-cache",
+						Connection: "keep-alive",
+					},
+				})
+
+				return this.createEventStream(response, options?.onStreamData)
+			}
 
 			return this.httpClient.post<string>(this.baseUrl, body)
 		} catch (error) {
@@ -189,5 +215,68 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 				controller.abort()
 			}
 		}
+	}
+
+	private createEventStream(
+		response: Readable,
+		onStreamData?: (event: StreamEvent) => void
+	): TypedReadable<StreamEvent> {
+		const outputStream = new Readable({
+			objectMode: true,
+			read() {},
+		}) as TypedReadable<StreamEvent>
+
+		let isStreamActive = true
+		let buffer = ""
+
+		if (!(response instanceof Readable)) {
+			throw new Error("Invalid SSE response: expected a readable stream")
+		}
+
+		response.on("data", (chunk: Buffer) => {
+			if (!isStreamActive) return
+
+			buffer += chunk.toString()
+			const events = buffer.split(/\n\n|\r\n\r\n/)
+			buffer = events.pop() || ""
+
+			for (const event of events) {
+				if (!event.startsWith("data:")) continue
+
+				try {
+					const jsonString =
+						event
+							.split("\n")
+							.find((line) => line.startsWith("data:"))
+							?.replace(/^data:\s*/, "") || "{}"
+
+					if (jsonString.trim() === "[DONE]") {
+						outputStream.push(null)
+						return
+					}
+
+					const parsedEvent = JSON.parse(jsonString) as StreamEvent
+
+					outputStream.push(parsedEvent)
+					onStreamData?.(parsedEvent)
+				} catch (err) {
+					outputStream.emit("error", new Error(`Failed to parse stream event: ${err.message}`))
+				}
+			}
+		})
+
+		response.on("error", (err: Error) => {
+			if (!isStreamActive) return
+			isStreamActive = false
+			outputStream.emit("error", err)
+		})
+
+		response.on("end", () => {
+			if (!isStreamActive) return
+			isStreamActive = false
+			outputStream.push(null)
+		})
+
+		return outputStream
 	}
 }

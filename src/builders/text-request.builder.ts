@@ -144,6 +144,16 @@ export class TextGenerationPostRequestBuilder extends BaseTextRequestBuilder<Tex
 	}
 
 	/**
+	 * Set the stream mode for the text generation request
+	 * @param stream - The stream mode to use for the text generation request
+	 * @returns The builder instance
+	 */
+	setStream(stream: boolean): this {
+		this.params.stream = stream
+		return this
+	}
+
+	/**
 	 * Build the request body for the text generation request
 	 * @returns The request body
 	 */
