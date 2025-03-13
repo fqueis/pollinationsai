@@ -116,6 +116,30 @@ const chatHistory = await textService.postGenerate({
 })
 ```
 
+##### Advanced Chat Completion with stream support
+
+```typescript
+// Complex POST request with message history
+
+// using callback pattern
+const onStreamData = (event) => console.log(event);
+
+const stream = await textService.postGenerate({
+    model: "openai-large",
+    messages: [
+        { role: "system", content: "You are a sarcastic assistant" },
+        { role: "user", content: "How do I make a sandwich?" },
+    ],
+    seed: 12345,
+}, { stream: true, onStreamData: onStreamData })
+
+// using native stream pattern
+stream
+    .on("data", (event) => console.log(event))
+    .on("end", () => console.log("Stream complete"))
+    .on("error", (err) => console.error("Stream error:", err));
+```
+
 ##### Multimodal Vision Processing
 
 ```typescript
