@@ -39,7 +39,7 @@ describe("PollinationsTextService", () => {
 			const calledUrl = mockHttpClient.get.mock.calls[0][0] as string
 			expect(calledUrl).toContain("model=openai-large")
 			expect(calledUrl).toContain("seed=42")
-			expect(calledUrl).toContain("jsonMode=true")
+			expect(calledUrl).toContain("json=true")
 			expect(calledUrl).toContain("system=Test%2520system")
 			expect(calledUrl).toContain("private=true")
 		})
