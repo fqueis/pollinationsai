@@ -37,7 +37,7 @@ import { createImageService } from "pollinationsai"
 **CommonJS Usage:**
 
 ```javascript
-const { createImageService } = require("pollinationsai/dist/cjs")
+const { createImageService } = require("pollinationsai")
 ```
 
 ## Type Safety
