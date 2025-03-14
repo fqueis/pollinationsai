@@ -27,32 +27,10 @@ jobs:
       - name: Test
         run: pnpm tests
 
-      - name: Check the version
-        id: check
-        run: |
-          CURRENT_VERSION=$(jq -r .version package.json)
-          echo "Current version: $CURRENT_VERSION"
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-
-          LATEST_VERSION=${LATEST_TAG#v}
-
-          if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; 
-          then
-            echo "Version changed"
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "Version not changed"
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build
         run: pnpm build
-        if: steps.check.outputs.version_changed == 'true'
 
       - name: Publish
-        if: steps.check.outputs.version_changed == 'true'
         run: npm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
