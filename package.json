@@ -1,6 +1,6 @@
 {
 	"name": "pollinationsai",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "An API wrapper for Pollination AI",
 	"type": "module",
 	"main": "dist/cjs/index.js",
