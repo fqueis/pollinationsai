@@ -33,7 +33,6 @@ describe("PollinationsTextService", () => {
 			mockHttpClient.get.mockResolvedValue(mockJsonResponse)
 
 			await service.getGenerate("Test prompt", {
-				prompt: "Test prompt",
 				model: "openai-large",
 				seed: 42,
 				jsonMode: true,
@@ -62,7 +61,7 @@ describe("PollinationsTextService", () => {
 
 			const prompt = "Test prompt"
 
-			const result = await service.getGenerate<any>(prompt, { jsonMode: true, prompt })
+			const result = await service.getGenerate<any>(prompt, { jsonMode: true })
 
 			expect(result).toEqual({ answer: 42 })
 		})

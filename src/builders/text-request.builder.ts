@@ -77,7 +77,9 @@ abstract class BaseTextRequestBuilder<T extends BaseGenerationParams> {
  * Builder for text generation get requests
  * @extends BaseTextRequestBuilder<TextGenerationGetParams>
  */
-export class TextGenerationGetRequestBuilder extends BaseTextRequestBuilder<TextGenerationGetParams> {
+export class TextGenerationGetRequestBuilder extends BaseTextRequestBuilder<
+	TextGenerationGetParams & { prompt: string }
+> {
 	private encode = (value: string) => encodeURIComponent(value)
 	private baseUrl: string
 

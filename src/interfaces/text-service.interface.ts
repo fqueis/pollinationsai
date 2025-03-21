@@ -34,9 +34,7 @@ export interface BaseGenerationParams {
 	private?: boolean
 }
 
-export interface TextGenerationGetParams extends BaseGenerationParams {
-	prompt: string
-}
+export interface TextGenerationGetParams extends BaseGenerationParams {}
 
 export interface TextGenerationPostParams extends BaseGenerationParams {
 	messages: TextMessage[]
