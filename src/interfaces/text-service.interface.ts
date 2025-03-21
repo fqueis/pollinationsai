@@ -13,13 +13,15 @@ export interface TypedReadable<T> extends Readable {
 }
 
 export interface TextService {
-	getGenerate(prompt: string, params?: TextGenerationGetParams): Promise<string>
+	getGenerate(prompt: string, params?: TextGenerationGetParams): Promise<string | JSON>
 	postGenerate(params: TextGenerationPostParams): Promise<string>
 	postGenerate(
 		params: TextGenerationPostParams,
 		options: { stream: true; onStreamData?: (event: StreamEvent) => void }
 	): Promise<TypedReadable<StreamEvent>>
+	postGenerate<T>(params: TextGenerationPostParams): Promise<T>
 	vision(params?: TextGenerationVisionParams): Promise<string>
+	vision<T>(params?: TextGenerationVisionParams): Promise<T>
 	listModels(): Promise<Model[]>
 	subscribeToFeed(onData: (event: TextFeedEvent) => void, onError?: (error: Error) => void): () => void
 }

@@ -42,9 +42,12 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 	 * Generate a text response using GET request method and returns a string or a JSON object
 	 * @param prompt - The prompt to generate text from
 	 * @param params - The parameters for the text generation
-	 * @returns The generated text or a JSON object
+	 * @returns {Promise<string>} The generated text
+	 * @returns {Promise<T>} When jsonMode is enabled
 	 */
-	async getGenerate(prompt: string, params?: TextGenerationGetParams): Promise<string> {
+	async getGenerate(prompt: string, params?: TextGenerationGetParams): Promise<string>
+	async getGenerate<T = string>(prompt: string, params?: TextGenerationGetParams): Promise<T>
+	async getGenerate<T>(prompt: string, params?: TextGenerationGetParams): Promise<string | T> {
 		try {
 			const url = new TextGenerationGetRequestBuilder(this.baseUrl)
 				.setPrompt(prompt)
@@ -56,6 +59,8 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 				.build()
 
 			const response = await this.httpClient.get<string>(url)
+
+			if (params?.jsonMode) return this.parseJson<T>(response)
 
 			return response
 		} catch (error) {
@@ -69,16 +74,18 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 	 * @param options - The options for the text generation
 	 * @returns {Promise<string>} The generated text or a JSON object
 	 * @returns {Promise<TypedReadable<StreamEvent>>} When streaming is enabled
+	 * @returns {Promise<T>} When jsonMode is enabled
 	 */
 	async postGenerate(
 		params: TextGenerationPostParams,
 		options: { stream: true; onStreamData?: (event: StreamEvent) => void }
 	): Promise<TypedReadable<StreamEvent>>
 	async postGenerate(params: TextGenerationPostParams): Promise<string>
-	async postGenerate(
+	async postGenerate<T = string>(params: TextGenerationPostParams): Promise<T>
+	async postGenerate<T>(
 		params: TextGenerationPostParams,
 		options?: { stream?: boolean; onStreamData?: (event: StreamEvent) => void }
-	): Promise<string | TypedReadable<StreamEvent>> {
+	): Promise<string | TypedReadable<StreamEvent> | T> {
 		try {
 			const builder = new TextGenerationPostRequestBuilder()
 				.setModel(params?.model)
@@ -104,7 +111,11 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 				return this.createEventStream(response, options?.onStreamData)
 			}
 
-			return this.httpClient.post<string>(this.baseUrl, body)
+			const response = await this.httpClient.post<string>(this.baseUrl, body)
+
+			if (params?.jsonMode) return this.parseJson<T>(response)
+
+			return response
 		} catch (error) {
 			throw super.handleError(error)
 		}
@@ -113,9 +124,12 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 	/**
 	 * Generate a text response using POST request method and returns a string or a JSON object
 	 * @param params - The parameters for the text generation
-	 * @returns The generated text or a JSON object
+	 * @returns {Promise<string>} The generated text
+	 * @returns {Promise<T>} When jsonMode is enabled
 	 */
-	async vision(params?: TextGenerationVisionParams): Promise<string> {
+	async vision(params?: TextGenerationVisionParams): Promise<string>
+	async vision<T = string>(params?: TextGenerationVisionParams): Promise<T>
+	async vision<T>(params?: TextGenerationVisionParams): Promise<string | T> {
 		try {
 			const builder = new TextGenerationVisionRequestBuilder()
 				.setModel(params?.model)
@@ -127,7 +141,11 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 
 			const body = builder.build()
 
-			return this.httpClient.post<string>(this.baseUrl, body)
+			const response = await this.httpClient.post<string>(this.baseUrl, body)
+
+			if (params?.jsonMode) return this.parseJson<T>(response)
+
+			return response
 		} catch (error) {
 			throw super.handleError(error)
 		}
@@ -280,5 +298,25 @@ export class PollinationsTextService extends RequestErrorHandler implements Text
 		})
 
 		return outputStream
+	}
+
+	private parseJson<T>(response: string): T {
+		if (typeof response === "object") return response as T
+
+		try {
+			return JSON.parse(response) as T
+		} catch {
+			const sanitized = this.sanitizeJson(response)
+
+			try {
+				return JSON.parse(sanitized) as T
+			} catch (e) {
+				throw new Error(`Malformed JSON response: ${e.message}`)
+			}
+		}
+	}
+
+	private sanitizeJson(response: string): string {
+		return response.replace(/([{,]\s*)([a-zA-Z0-9_]+?)\s*:/g, '$1"$2":').replace(/:\s*'([^']+)'/g, ': "$1"')
 	}
 }
