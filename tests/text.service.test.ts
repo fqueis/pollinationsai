@@ -29,8 +29,10 @@ describe("PollinationsTextService", () => {
 		})
 
 		test("should include all parameters in GET request", async () => {
+			const mockJsonResponse = JSON.stringify({ result: "Generated JSON response" })
+			mockHttpClient.get.mockResolvedValue(mockJsonResponse)
+
 			await service.getGenerate("Test prompt", {
-				prompt: "Test prompt",
 				model: "openai-large",
 				seed: 42,
 				jsonMode: true,
@@ -51,6 +53,17 @@ describe("PollinationsTextService", () => {
 			mockHttpClient.get.mockRejectedValue(error)
 
 			await expect(service.getGenerate("Test")).rejects.toThrow()
+		})
+
+		test("should parse JSON when jsonMode enabled", async () => {
+			const mockResponse = JSON.stringify({ answer: 42 })
+			mockHttpClient.get.mockResolvedValue(mockResponse)
+
+			const prompt = "Test prompt"
+
+			const result = await service.getGenerate<any>(prompt, { jsonMode: true })
+
+			expect(result).toEqual({ answer: 42 })
 		})
 	})
 
@@ -76,6 +89,9 @@ describe("PollinationsTextService", () => {
 		})
 
 		test("should include all parameters in POST request", async () => {
+			const mockJsonResponse = JSON.stringify({ result: "Generated JSON response" })
+			mockHttpClient.post.mockResolvedValue(mockJsonResponse)
+
 			await service.postGenerate({
 				messages: [{ role: "user", content: "Hello" }],
 				model: "gpt-4",
@@ -158,6 +174,42 @@ describe("PollinationsTextService", () => {
 
 			expect(endHandler).toHaveBeenCalled()
 		})
+
+		test("should parse valid JSON response", async () => {
+			const mockResponse = JSON.stringify({ result: "success" })
+			mockHttpClient.post.mockResolvedValue(mockResponse)
+
+			const result = await service.postGenerate<any>({ messages: [{ role: "user", content: "Hello" }], jsonMode: true })
+
+			expect(result).toEqual({ result: "success" })
+		})
+
+		test("should sanitize and parse malformed JSON", async () => {
+			const badJson = "{key: 'value', num: 123}"
+			mockHttpClient.post.mockResolvedValue(badJson)
+
+			const result = await service.postGenerate<any>({ messages: [{ role: "user", content: "Hello" }], jsonMode: true })
+
+			expect(result).toEqual({ key: "value", num: 123 })
+		})
+
+		test("should handle already parsed JSON objects", async () => {
+			const mockResponse = { result: "parsed" }
+			mockHttpClient.post.mockResolvedValue(JSON.stringify(mockResponse))
+
+			const result = await service.postGenerate<any>({ messages: [{ role: "user", content: "Hello" }], jsonMode: true })
+
+			expect(result).toEqual(mockResponse)
+		})
+
+		test("should throw error for invalid JSON after sanitization", async () => {
+			const badJson = "{invalid}"
+			mockHttpClient.post.mockResolvedValue(badJson)
+
+			await expect(
+				service.postGenerate({ messages: [{ role: "user", content: "Hello" }], jsonMode: true })
+			).rejects.toThrow("Malformed JSON response")
+		})
 	})
 
 	describe("vision", () => {
@@ -184,6 +236,9 @@ describe("PollinationsTextService", () => {
 		})
 
 		test("should handle vision parameters when explicitly set", async () => {
+			const mockJsonResponse = JSON.stringify({ result: "Generated JSON response" })
+			mockHttpClient.post.mockResolvedValue(mockJsonResponse)
+
 			await service.vision({
 				messages: [
 					{
@@ -208,6 +263,18 @@ describe("PollinationsTextService", () => {
 					private: true,
 				})
 			)
+		})
+
+		test("should handle JSON responses in vision mode", async () => {
+			const mockResponse = JSON.stringify({ analysis: "positive" })
+			mockHttpClient.post.mockResolvedValue(mockResponse)
+
+			const result = await service.vision<any>({
+				messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+				jsonMode: true,
+			})
+
+			expect(result).toEqual({ analysis: "positive" })
 		})
 	})
 
